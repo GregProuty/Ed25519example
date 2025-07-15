@@ -4,10 +4,9 @@
   "description": "End-to-end NEAR Protocol transaction example with Ed25519 signing",
   "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node src/simple-near.ts",
-    "start-detailed": "ts-node src/index.ts",
+    "start": "ts-node src/index.ts",
     "build": "tsc",
-    "dev": "ts-node --watch src/simple-near.ts",
+    "dev": "ts-node --watch src/index.ts",
     "type-check": "tsc --noEmit"
   },
   "keywords": [

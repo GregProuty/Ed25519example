@@ -28,7 +28,12 @@ npm install
 ```
 
 ### **2. Setup Environment**
-Create a `.env` file in the project root:
+Copy the environment template and fill in your values:
+```bash
+cp env.template .env
+```
+
+Then edit `.env` with your NEAR credentials:
 ```bash
 # Your NEAR testnet account
 ACCOUNT_ID=your-account.testnet
@@ -185,7 +190,9 @@ near-transaction-example/
 │   └── index.ts          # Main example code
 ├── package.json          # Dependencies and scripts
 ├── tsconfig.json         # TypeScript configuration  
-├── .env.example          # Environment template
+├── env.template          # Environment template (copy to .env)
+├── .gitignore           # Git ignore rules
+├── LICENSE              # MIT license
 └── README.md            # This file
 ```
 

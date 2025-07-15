@@ -36,9 +36,14 @@ async function createNearTransaction(request: NearTransactionRequest) {
   if (!privateKey) {
     throw new Error('PRIVATE_KEY must be set in environment (format: ed25519:...)')
   }
+  if (!accountId) {
+    throw new Error('ACCOUNT_ID must be set in environment')
+  }
 
+  console.log(`🔑 Account ID: ${accountId}`)
   const keyPair = KeyPair.fromString(privateKey) // Ed25519 key
   console.log('🔑 Using Ed25519 key pair from string format')
+  console.log(`🔑 Public key: ${keyPair.getPublicKey().toString()}`)
 
   // Create a keystore and add the Ed25519 key
   const keyStore = new InMemoryKeyStore()
@@ -78,14 +83,27 @@ async function createNearTransaction(request: NearTransactionRequest) {
   ]
 
   // Get account info for nonce and recent block hash
+  console.log(`🔍 Getting access key for: ${accountId}`)
+  const publicKeyStr = keyPair.getPublicKey().toString()
+  console.log(`🔍 Public key string: ${publicKeyStr}`)
+  
   const accessKey = await near.connection.provider.query(
-    `access_key/${accountId}/${keyPair.getPublicKey().toString()}`,
+    `access_key/${accountId}/${publicKeyStr}`,
     ''
   ) as any
+
+  console.log(`🔍 Access key nonce: ${accessKey.nonce}`)
+  console.log(`🔍 Block hash: ${accessKey.block_hash}`)
 
   const recentBlockHash = nearUtils.serialize.base_decode(accessKey.block_hash)
 
   // 2. TRANSACTION CREATION
+  console.log(`🔧 Creating transaction with:`)
+  console.log(`   - accountId: ${accountId}`)
+  console.log(`   - publicKey: ${publicKeyStr}`)
+  console.log(`   - receiverId: ${request.to}`)
+  console.log(`   - nonce: ${accessKey.nonce + 1}`)
+
   const transaction = transactions.createTransaction(
     accountId,                    // sender
     keyPair.getPublicKey(),      // sender's public key
@@ -97,7 +115,8 @@ async function createNearTransaction(request: NearTransactionRequest) {
 
   console.log('✅ Transaction created')
   console.log(`Nonce: ${transaction.nonce}`)
-  console.log(`Block hash: ${accessKey.block_hash}`)
+  console.log(`SignerId: ${transaction.signerId}`)
+  console.log(`ReceiverId: ${transaction.receiverId}`)
 
   // 3. ED25519 SIGNING
   console.log('\n🔐 Signing transaction with Ed25519...')
@@ -137,22 +156,16 @@ async function createNearTransaction(request: NearTransactionRequest) {
   console.log('\n📡 Broadcasting to NEAR network...')
   
   try {
-    const result = await near.connection.provider.sendTransaction(signedTransaction)
+    // Using account.signAndSendTransaction instead of manual signing due to serialization issues
+    console.log('🔄 Using account.signAndSendTransaction (handles Ed25519 internally)')
+    const result = await account.signAndSendTransaction({
+      receiverId: request.to,
+      actions: actions,
+    })
     
-    console.log('✅ Transaction broadcasted successfully!')
-    console.log(`Transaction hash: ${result.transaction.hash}`)
-    
-    // Wait for finalization
-    console.log('\n⏳ Waiting for transaction finalization...')
-    const finalResult = await near.connection.provider.sendTransactionUntil(
-      signedTransaction,
-      'INCLUDED_FINAL'
-    )
-
-    const outcome = getTransactionLastResult(finalResult)
-    console.log('🎉 Transaction finalized!')
-    console.log(`Final status: ${finalResult.status}`)
-    console.log(`Gas used: ${finalResult.transaction_outcome.outcome.gas_burnt}`)
+    console.log('✅ Transaction broadcasted and finalized!')
+    console.log(`Transaction hash: ${getTransactionLastResult(result)}`)
+    console.log(`Gas used: ${result.transaction_outcome.outcome.gas_burnt}`)
     
     // Check updated balances
     const newBalance = await account.getAccountBalance()
@@ -160,9 +173,8 @@ async function createNearTransaction(request: NearTransactionRequest) {
 
     return {
       success: true,
-      transactionHash: result.transaction.hash,
-      gasUsed: finalResult.transaction_outcome.outcome.gas_burnt,
-      finalStatus: finalResult.status
+      transactionHash: getTransactionLastResult(result),
+      gasUsed: result.transaction_outcome.outcome.gas_burnt
     }
 
   } catch (error) {
@@ -174,9 +186,17 @@ async function createNearTransaction(request: NearTransactionRequest) {
 // Example usage
 async function main() {
   try {
+    // Load environment to get real account ID
+    dotenv.config({ path: '.env' })
+    const accountId = process.env.ACCOUNT_ID
+    
+    if (!accountId) {
+      throw new Error('ACCOUNT_ID must be set in .env file')
+    }
+
     const request: NearTransactionRequest = {
-      from: 'sender.testnet',
-      to: 'receiver.testnet', 
+      from: accountId,  // Use real account from .env
+      to: 'receiver.testnet',  // You may want to change this to a real receiver
       amount: '0.1', // 0.1 NEAR
       memo: 'Test transfer via Ed25519'
     }

@@ -4,9 +4,10 @@
   "description": "End-to-end NEAR Protocol transaction example with Ed25519 signing",
   "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "ts-node src/simple-near.ts",
+    "start-detailed": "ts-node src/index.ts",
     "build": "tsc",
-    "dev": "ts-node --watch src/index.ts",
+    "dev": "ts-node --watch src/simple-near.ts",
     "type-check": "tsc --noEmit"
   },
   "keywords": [
@@ -21,11 +22,7 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
-    "@near-js/crypto": "^1.2.4",
-    "@near-js/keystores": "^0.0.12",
-    "@near-js/transactions": "^1.2.2",
-    "@near-js/utils": "^0.2.2",
-    "near-api-js": "^4.0.3",
+    "near-api-js": "^3.0.4",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {

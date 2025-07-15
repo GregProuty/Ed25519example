@@ -1,57 +1,67 @@
-# NEAR Protocol Transaction with Ed25519
+# NEAR Transaction MPC Pattern
 
-End-to-end example demonstrating NEAR Protocol transactions using Ed25519 signing.
+## Pattern
 
-## Overview
-
-This example shows how to:
-- Load Ed25519 keys from environment variables
-- Create and sign NEAR transactions
-- Broadcast transactions to NEAR testnet
-
-## Setup
-
-### Prerequisites
-- Node.js 18+
-- NEAR testnet account with funds
-- Ed25519 private key for your account
-
-### Installation
-```bash
-git clone <repository-url>
-cd near-transaction-example
-npm install
-```
-
-### Environment Configuration
-Copy the environment template:
-```bash
-cp env.template .env
-```
-
-Edit `.env` with your credentials:
-```
-ACCOUNT_ID=your-account.testnet
-PRIVATE_KEY=ed25519:your_private_key_here
-```
+1. Construct raw unsigned NEAR transaction
+2. Serialize transaction for signing
+3. MPC sign with Ed25519 for derived account
+4. Attach signature to unsigned transaction
+5. Broadcast to NEAR network
 
 ## Usage
 
-Run the example:
 ```bash
+npm install
+cp env.template .env
+# Edit .env with your credentials
 npm start
 ```
 
-Example output:
+## Implementation
+
+```typescript
+// 1. Construct transaction
+const transaction = transactions.createTransaction(
+  accountId, publicKey, receiverId, nonce, actions, blockHash
+)
+
+// 2. Serialize for signing
+const serializedTx = nearUtils.serialize.serialize(
+  transactions.SCHEMA.Transaction, transaction
+)
+
+// 3. Sign with Ed25519
+const signature = await signer.signMessage(serializedTx, accountId, networkId)
+
+// 4. Attach signature
+const signedTransaction = new transactions.SignedTransaction({
+  transaction,
+  signature: new transactions.Signature({
+    keyType: 'ed25519',
+    data: signature.signature
+  })
+})
+
+// 5. Broadcast
+const result = await provider.sendTransaction(signedTransaction)
 ```
-Account: your-account.testnet
-Public Key: ed25519:ABC123...
-Connected to NEAR testnet
-Balance: 27.64 NEAR
-Transferring 0.01 NEAR to receiver.testnet
-Transaction completed
-Hash: uWBMXQMkfXjpbfKPLJ2oZfoZU51142AugWhqFaVJpUx
-Gas: 223182562500
-Success: true
-Transaction: https://testnet.nearblocks.io/txns/uWBMXQMkfXjpbfKPLJ2oZfoZU51142AugWhqFaVJpUx
+
+## MPC Integration
+
+For production MPC signing, replace step 3 with:
+
+```typescript
+import { contracts } from 'chainsig.js'
+
+const contract = new contracts.ChainSignatureContract({
+  networkId: 'testnet',
+  contractId: 'v1.signer-prod.testnet'
+})
+
+const signature = await contract.sign({
+  payloads: [Array.from(serializedTx)],
+  path: 'derivation-path',
+  keyType: 'Eddsa',
+  signerAccount: { /* ... */ }
+})
 ```

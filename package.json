@@ -1,7 +1,7 @@
 {
   "name": "near-transaction-example",
   "version": "1.0.0",
-  "description": "End-to-end NEAR Protocol transaction example with Ed25519 signing",
+  "description": "NEAR transaction with 5-step MPC Ed25519 signing pattern",
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
@@ -11,18 +11,19 @@
   },
   "keywords": [
     "near",
-    "near-protocol",
-    "blockchain",
-    "transaction",
+    "mpc",
     "ed25519",
-    "cryptocurrency",
-    "typescript"
+    "transaction",
+    "blockchain"
   ],
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
-    "near-api-js": "^3.0.4",
-    "dotenv": "^16.4.5"
+    "near-api-js": "^4.0.3",
+    "dotenv": "^16.4.5",
+    "chainsig.js": "file:../chainsig.js",
+    "@near-wallet-selector/wallet-utils": "^8.9.0",
+    "@near-js/utils": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

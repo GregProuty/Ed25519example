@@ -21,7 +21,7 @@
   "dependencies": {
     "near-api-js": "^4.0.3",
     "dotenv": "^16.4.5",
-    "chainsig.js": "file:../chainsig.js",
+    "chainsig.js": "chainsig.js",
     "@near-wallet-selector/wallet-utils": "^8.9.0",
     "@near-js/utils": "^0.1.0"
   },

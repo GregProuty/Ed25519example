@@ -102,7 +102,7 @@ async function executeNearTransferWithMPC(request: NearTransferRequest) {
   
   // Create a proper derived account name
   const mpcPublicKey = nearUtils.PublicKey.fromString(derivedPublicKey)
-  const derivedAccountId = `near-1.${accountId}`
+  const derivedAccountId = `${derivationPath}.${accountId}`
   
   console.log(`Derived NEAR account: ${derivedAccountId}`)
   
